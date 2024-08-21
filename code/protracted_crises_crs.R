@@ -14,6 +14,9 @@ setwd("../")
 # Load data created by above psql
 dat = fread('input/protracted_crises_crs.csv')
 
+# Calculate per-country minimum.maximum years for later use
+dat.years = dat[,.(min.year=min(year), max.year=max(year)), by=(recipient_name)]
+
 # Expand grid so dataset has value for every country/year combination
 codes = unique(dat[,c("recipient_name", "recipient_iso3_code", "region_name")])
 dat_grid = expand.grid(
@@ -27,6 +30,19 @@ dat = merge(dat, codes, by="recipient_iso3_code", all.x=T)
 # Remove regional aggregates and NAs
 dat = subset(dat, !endsWith(recipient_iso3_code, "_X"))
 dat$sum[which(is.na(dat$sum))] = 0
+
+# Remove rows which were outside of the min/max range of original data
+for(i in 1:nrow(dat.years)){
+  row = dat.years[i,]
+  recip = row$recipient_name
+  min.year = row$min.year
+  max.year = row$max.year
+  dat = subset(
+    dat,
+    recipient_name != recip |
+      (year >= min.year & year <= max.year)
+  )
+}
 
 # Calculate lagged value
 dat = dat[order(dat$recipient_name, dat$year)]
