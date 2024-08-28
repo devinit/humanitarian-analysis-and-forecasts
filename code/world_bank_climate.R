@@ -101,12 +101,15 @@ p = ggplot(dat, aes(x=inform, y=value, color=inform, text=paste0(
   "WB Adaptation: ", dollar(value),"\n",
   "INFORM CC Risk Index: ", inform
   ))) +
-  geom_point() +
+  geom_point(size=3) +
   scale_y_log10(label=dollar) +
-  scale_color_gradient2(low=reds[2], high=reds[5]) +
+  scale_color_gradient2(low=reds[2], high=reds[1]) +
+  guides(color="none") +
   di_style + labs(
     x="INFORM Climate Change Risk Index 2022",
     y="World Bank Adaptation Disbursements"
   )
+
+ggsave(filename="output/wb_inform.png", plot=p, width=10, height=5)
 
 ggplotly(p, tooltip="text")
